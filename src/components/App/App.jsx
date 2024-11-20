@@ -82,7 +82,7 @@ function App() {
         <SearchBar onSubmit={handleSearchSubmit} />
       </header>
       <section>
-        {error && <ErrorMessage message={error} />}
+        {query && error && <ErrorMessage message={error} />}
         <ImageGallery images={images} onImageClick={openModal} />
         {isLoading && <Loader />}
         {images.length > 0 && !isLoading && hasMore && (
