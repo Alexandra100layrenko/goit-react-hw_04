@@ -1,0 +1,45 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    z-index: 1000;
+    padding: 10px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+  
+.form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+}
+  
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+  
+.input {
+    padding: 8px 12px;
+    padding-left: 45px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+  
+.searchButton {
+    position: fixed;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+  
+.errorMessage {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
