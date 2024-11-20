@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import toast from 'react-hot-toast';
-import './App.css';
+import s from './App.module.css';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import SearchBar from '../SearchBar/SearchBar';
 import LoadMoreBtn from '../LoadMoreBtn/LoadMoreBtn';
@@ -16,80 +16,98 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [totalPages, setTotalPages] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
 
   const API_KEY = 'JyNgZqGkyp-nusF9kEkLmb9tATZhW2CiODfKDVoF8Og';
   const API_URL = 'https://api.unsplash.com/search/photos';
 
-  const fetchImages = async (searchQuery, currentPage = 1) => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(API_URL, {
-        params: {
-          query: searchQuery,
-          page: currentPage,
-          per_page: 12,
-        },
-        headers: {
-          Authorization: `Client-ID ${API_KEY}`,
-        },
-      });
-      const fetchedImages = response.data.results;
-      setImages(prev =>
-        currentPage === 1 ? fetchedImages : [...prev, ...fetchedImages]
-      );
-      setError(null); // Сброс ошибки, если запрос успешен
-    } catch (err) {
-      setError('Failed to fetch images. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchImages = async (query, page) => {
+    const response = await axios.get(API_URL, {
+      params: {
+        query,
+        page,
+        per_page: 12,
+      },
+      headers: {
+        Authorization: `Client-ID ${API_KEY}`,
+      },
+    });
+    return response.data;
   };
 
-  const debouncedFetchImages = debounce((searchQuery, page) => {
-    fetchImages(searchQuery, page);
-  }, 300);
+  useEffect(() => {
+    if (!query.trim()) return;
+  
+    const loadImages = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchImages(query, page);
+        setImages(prevImages => 
+          (page === 1 
+            ? data.results 
+            : [...prevImages, ...data.results]));
+        setTotalPages(data.total_pages);
+        setError(null);
+      } catch (error) {
+        setError('Failed to fetch images. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    loadImages();
+  }, [query, page]);
 
   const handleSearchSubmit = newQuery => {
+    if (query === newQuery) return; // Если запрос не изменился, ничего не делать
     setQuery(newQuery);
     setPage(1);
-    setImages([]);
+    setImages([]); // Сброс изображений
+    setTotalPages(0);
     setError(null);
     toast.success(`Searching for "${newQuery}"`);
-    debouncedFetchImages(newQuery, 1);
   };
 
   const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchImages(query, nextPage);
+    if (page < totalPages) {
+      setPage(prevPage => prevPage + 1);
+    }
   };
 
   const openModal = image => {
-    setSelectedImage(image);
-    setIsModalOpen(true);
+    if (image) {
+      setSelectedImage(image);
+    }
   };
-
+  
   const closeModal = () => {
     setSelectedImage(null);
-    setIsModalOpen(false);
   };
 
   return (
-    <div>
+    <div className={s.wraper}>
       <header>
         <SearchBar onSubmit={handleSearchSubmit} />
       </header>
       <section>
         {query && error && <ErrorMessage message={error} />}
         <ImageGallery images={images} onImageClick={openModal} />
-        {isLoading && <Loader />}
-        {images.length > 0 && !isLoading && hasMore && (
+        {images.length > 0 && page < totalPages && !isLoading && (
           <LoadMoreBtn onClick={handleLoadMore} />
         )}
+        {isLoading && <Loader />}
+        {!isLoading && images.length === 0 && query && (
+          <p>No images found for "{query}". Try a different search!</p>
+        )}
       </section>
-      {isModalOpen && <ImageModal image={selectedImage} onClose={closeModal} />}
+      {selectedImage && (
+        <ImageModal
+          isOpen={!!selectedImage}
+          image={selectedImage}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }

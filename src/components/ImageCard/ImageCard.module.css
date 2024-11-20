@@ -12,13 +12,7 @@
   
 .image {
     width: 100%;
-    height: auto;
+    height: 320px;
     display: block;
     border-radius: 4px;
-}
-  
-.caption {
-    margin-top: 8px;
-    font-size: 14px;
-    color: #555;
 }

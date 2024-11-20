@@ -1,7 +1,7 @@
 import s from './LoadMoreBtn.module.css'
 
 const LoadMoreBtn = ({ onClick }) => (
-    <button onClick={onClick} className={s.button}>
+    <button onClick={onClick} className={s.loading}>
       Load more
     </button>
   );
